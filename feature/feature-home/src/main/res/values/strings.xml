@@ -1,0 +1,11 @@
+<resources>
+    <string name="home_title">Cielo Tickets</string>
+    <string name="home_loading">Carregando eventos…</string>
+    <string name="home_empty">Nenhum evento disponível no momento.</string>
+    <string name="home_error_loading">Não foi possível carregar os eventos. Puxe para tentar novamente.</string>
+    <string name="home_price_from">A partir de %1$s</string>
+    <plurals name="home_available_badge">
+        <item quantity="one">%1$d disponível</item>
+        <item quantity="other">%1$d disponíveis</item>
+    </plurals>
+</resources>

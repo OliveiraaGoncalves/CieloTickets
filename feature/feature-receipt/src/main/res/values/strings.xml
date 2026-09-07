@@ -1,0 +1,16 @@
+<resources>
+    <string name="receipt_title">Comprovante</string>
+    <string name="receipt_label_event">Evento</string>
+    <string name="receipt_label_tickets">Ingressos</string>
+    <string name="receipt_label_total">Total</string>
+    <string name="receipt_label_transaction">Transação Cielo</string>
+    <string name="receipt_qr_hint">Apresente este QR Code na entrada do evento</string>
+    <string name="receipt_qr_content_description">QR Code do ingresso</string>
+    <string name="receipt_done_button">Voltar ao início</string>
+
+    <string name="receipt_status_approved">Pagamento aprovado</string>
+    <string name="receipt_status_denied">Pagamento negado</string>
+    <string name="receipt_status_cancelled">Pagamento cancelado</string>
+    <string name="receipt_status_pending">Pagamento com pendência</string>
+    <string name="receipt_load_error">Não foi possível carregar o comprovante.</string>
+</resources>

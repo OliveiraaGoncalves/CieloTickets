@@ -1,0 +1,4 @@
+<resources>
+    <string name="action_retry">Tentar novamente</string>
+    <string name="action_back">Voltar</string>
+</resources>

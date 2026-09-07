@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+*/build/
+**/build/
+.kotlin/
+
+# Local configuration (nunca versionar — específico de cada máquina/CI)
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# Android Studio / IntelliJ
+.idea/*
+!.idea/codeStyles
+!.idea/runConfigurations
+*.iml
+.navigation/
+captures/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

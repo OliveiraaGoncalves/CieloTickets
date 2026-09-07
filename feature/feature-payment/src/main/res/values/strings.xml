@@ -1,0 +1,19 @@
+<resources>
+    <string name="payment_title">Pagamento</string>
+    <string name="payment_label_event">Evento</string>
+    <string name="payment_label_tickets">Ingressos</string>
+    <string name="payment_label_total">Total</string>
+    <string name="payment_idle_hint">Toque no botão abaixo e aproxime o cartão da Cielo Smart</string>
+    <string name="payment_cta">Pagar com Cielo Smart</string>
+    <string name="payment_processing">Processando pagamento na Cielo Smart…</string>
+    <string name="payment_cancel_hint">Se a Cielo Smart não abriu ou você desistiu, toque em cancelar.</string>
+    <string name="payment_cancel_button">Cancelar</string>
+    <string name="payment_approved_generating_receipt">Aprovado! Gerando comprovante…</string>
+
+    <string name="payment_error_denied">Pagamento negado pela operadora. Verifique os dados do cartão e tente novamente.</string>
+    <string name="payment_error_cancelled">Pagamento cancelado. Toque em \'Tentar novamente\' quando quiser prosseguir.</string>
+    <string name="payment_error_timeout">Tempo esgotado aguardando a Cielo Smart. Verifique a conexão e tente novamente.</string>
+    <string name="payment_error_network">Não foi possível se comunicar com a Cielo Smart. Tente novamente.</string>
+    <string name="payment_error_generic">Pagamento não concluído. Toque em \'Tentar novamente\' — nenhuma cobrança duplicada será feita.</string>
+    <string name="payment_load_error">Não foi possível carregar os dados deste pedido.</string>
+</resources>

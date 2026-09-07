@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          Recebe o callback da Cielo Smart / emulador após o fluxo de
+          pagamento via deeplink (order://response). scheme/host DEVEM
+          bater com CieloDeeplinkCodec.CALLBACK_SCHEME/CALLBACK_HOST.
+          exported=true é obrigatório: quem chama essa activity é OUTRO
+          app (a Cielo Smart), não o nosso próprio processo.
+        -->
+        <activity
+            android:name="br.com.cielotickets.core.paymentcielo.deeplink.CieloResponseActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="order" android:host="response" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Sem permissão de INTERNET de propósito: o app não faz nenhuma chamada
+      de rede (eventos são locais via Room, pagamento é via Deeplink/Intent
+      para a Cielo Smart, não HTTP). Não pedir uma permissão que não é usada
+      é boa prática de privacidade/revisão de loja.
+    -->
+
+    <application
+        android:name=".CieloTicketsApp"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.CieloTickets"
+        android:supportsRtl="true">
+
+        <!--
+          Obrigatório para que o app seja distribuído corretamente para os
+          terminais Cielo Smart no processo de publicação (integração via
+          Deeplink). Ver docs/ARCHITECTURE.md e
+          https://github.com/DeveloperCielo/LIO-SDK-Sample-Integracao-Local
+        -->
+        <meta-data
+            android:name="cs_integration_type"
+            android:value="uri" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CieloTickets">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

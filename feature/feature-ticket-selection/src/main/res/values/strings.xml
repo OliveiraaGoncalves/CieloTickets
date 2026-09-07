@@ -1,0 +1,14 @@
+<resources>
+    <string name="ticket_selection_title">Escolher ingressos</string>
+    <string name="ticket_selection_total">Total</string>
+    <string name="ticket_selection_cta">Ir para pagamento</string>
+    <string name="ticket_selection_quantity_title">Quantidade de ingressos</string>
+    <string name="ticket_selection_decrement_cd">Diminuir quantidade</string>
+    <string name="ticket_selection_increment_cd">Aumentar quantidade</string>
+    <string name="ticket_selection_unit_price">Preço unitário</string>
+    <string name="ticket_selection_load_error">Não foi possível carregar este evento.</string>
+    <plurals name="ticket_selection_available">
+        <item quantity="one">%1$d ingresso disponível</item>
+        <item quantity="other">%1$d ingressos disponíveis</item>
+    </plurals>
+</resources>
