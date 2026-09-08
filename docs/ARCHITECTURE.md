@@ -4,21 +4,31 @@
 
 ```
 app                        (orquestração, @HiltAndroidApp, NavHost — conhece tudo)
-├── core:core-common        (AppResult, DomainError, UseCase base, Dispatchers)
-├── core:core-local-storage  (Room: PurchaseAttempt = idempotência; Event = catálogo local)
+├── core:core-common        (AppResult, DomainError, UseCase base, Dispatchers,
+│                            EventModel/PurchaseOrderModel/etc. — modelos de
+│                            domínio compartilhados por mais de uma feature)
+├── core:core-network        (Retrofit/OkHttp — catálogo de eventos via mockapi.io)
+├── core:core-local-storage  (Room: PurchaseAttempt = idempotência; EventEntity = cache do catálogo remoto)
 ├── core:core-payment-cielo  (integração Deeplink real com a Cielo Smart)
 ├── core:core-designsystem   (tema Compose, componentes de loading/erro)
 ├── feature:feature-home             (listar eventos)
 ├── feature:feature-ticket-selection (escolher quantidade)
 ├── feature:feature-payment          (cobrança + anti-duplicidade)
-└── feature:feature-receipt          (comprovante + QR code — domain/data/di
-                                       completos, reconstrói o comprovante a
-                                       partir só da idempotencyKey)
+├── feature:feature-receipt          (comprovante + QR code — domain/data/di
+│                                      completos, reconstrói o comprovante a
+│                                      partir só da idempotencyKey)
+└── feature:feature-history          (histórico de compras — escopo extra,
+                                       não pedido pelo case original)
 ```
 
-Não existe módulo de rede: o app não tem backend (nem precisa, ver
-"Trade-offs assumidos") — a única fonte de dados é o Room, tanto para o
-catálogo de eventos quanto para a trilha de idempotência de pagamento.
+O catálogo de eventos vem de uma API real (mockapi.io, via `core-network`),
+não é mais fixo/local — `EventRepositoryImpl` (`feature-home/data`) tenta a
+rede primeiro e cai pro cache do Room (`EventDao`) só se a chamada falhar
+(offline-first). A idempotência de pagamento continua 100% local (Room é a
+única fonte de verdade pra isso, nunca precisou de rede). Ver
+`FakeEventRemoteDataSource`/`EventNetworkModule` pra rodar sem o mockapi.io
+configurado (mesmo padrão do `FakeCieloPaymentGateway`), e a seção
+`#deploy` pra como configurar `API_BASE_URL`.
 
 Regra dura, verificável pelo grafo de dependências do Gradle:
 **`core:*` nunca depende de `feature:*`. `feature:*` pode depender de `core:*`
@@ -46,11 +56,10 @@ Plugins registrados (aplicados via `alias(libs.plugins.cielotickets.*)`):
   `hilt-navigation-compose` + `navigation-compose` (pro `SavedStateHandle`
   ler os argumentos de rota — ver seção de navegação abaixo) +
   `core-common`/`core-designsystem` — o que toda `feature:*` com
-  `@HiltViewModel` via Compose precisa. As 4 features usam (`feature-receipt`
-  passou a usar também depois de ganhar `ReceiptViewModel`).
+  `@HiltViewModel` via Compose precisa. As 5 features usam.
 - `cielotickets.android.test.junit5`: `testOptions.unitTests.useJUnitPlatform()`
-  + JUnit5/MockK/Turbine, só nos módulos com testes reais
-  (`feature-home`, `feature-payment`).
+  + JUnit5/MockK/Turbine, nos módulos com testes reais (`core-network` e as
+  5 `feature:*`).
 
 Dependências entre módulos usam os accessors tipados do Gradle
 (`enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")` no `settings.gradle.kts`
@@ -59,16 +68,27 @@ raiz) — `projects.core.coreLocalStorage` em vez de
 tempo de compilação do script, não só quando o Gradle tenta resolver o
 módulo.
 
-**Pegadinha do Gradle 9 encontrada aqui:** um módulo que aplica um plugin
-vindo de um *included build* (caso de todo `cielotickets.*`) perde, *nesse
-mesmo arquivo*, só a parte **tipada** do accessor do catálogo — `libs.core.ktx`
-dá "Unresolved reference". O método genérico `libs.findLibrary("nome-no-toml")`
-continua funcionando normalmente no mesmo objeto `libs`, sem precisar
-resolver o catálogo de novo na mão. Nos módulos que ainda precisam de uma
-lib direta (não coberta por nenhum plugin de convenção — `app`,
-`core-common`, `core-local-storage`, `core-payment-cielo`, e as 4
-`feature:*` por causa de `kotlinx-serialization-json` das rotas tipadas), a
-saída é só trocar `libs.foo.bar` por `libs.findLibrary("foo-bar").get()`.
+**Pegadinha do Gradle 9 encontrada e corrigida aqui:** por um bom tempo,
+todo módulo que aplicava um plugin de convenção (caso de todo
+`cielotickets.*`, vindo de um *included build*) perdia, nesse mesmo
+arquivo, a parte **tipada** do accessor do catálogo — `libs.core.ktx` dava
+"Unresolved reference", só `libs.findLibrary("core-ktx").get()` funcionava.
+Causa raiz (achada comparando com repositórios de referência, reproduzida
+isolada num módulo de teste): as classes de `build-logic/convention/src/
+main/kotlin/*.kt` estavam todas no **pacote padrão** (sem `package`
+declarado) — isso colide com o accessor sintético `libs` que o próprio
+Gradle gera pro script, e o Gradle recua pro tipo genérico. Solução: mover
+todas as classes de convention plugin para um pacote nomeado
+(`br.com.cielotickets.buildlogic.convention`) — os accessors tipados
+(`libs.foo.bar`) voltam a funcionar em todo `build.gradle.kts` do projeto,
+sem exceção.
+
+De quebra, `namespace = "br.com.cielotickets.x.y"` não precisa mais ser
+repetido em cada módulo: `configureKotlinAndroid` deriva automaticamente do
+path do Gradle (`:core:core-local-storage` -> `br.com.cielotickets.core.
+localstorage`), com override ainda possível no `build.gradle.kts` do módulo
+se algum nome fugir do padrão (a atribuição do script roda depois da do
+plugin).
 
 ## Por que Clean Architecture + MVVM por feature
 
@@ -85,6 +105,17 @@ Isso torna o `domain` 100% testável em JVM puro e isola qualquer troca de
 fornecedor (ex. trocar a fonte local por uma API real no futuro) na camada
 `data`.
 
+**Repository e UseCase são sempre interface + Impl**, nunca classe
+concreta injetada direto no ViewModel (`EventRepository`/
+`EventRepositoryImpl`, `GetAvailableEventsUseCase`/
+`GetAvailableEventsUseCaseImpl`, etc.), ligados via `@Binds` no `di/` de
+quem os implementa. `PurchaseRepository` (`feature-payment`) é o exemplo
+mais recente: `ProcessPaymentUseCase` dependia direto de
+`PurchaseAttemptDao` (Room) — violava Dependency Inversion (domínio
+conhecendo o framework de persistência) e destoava do padrão já usado por
+`ReceiptRepository`/`PurchaseHistoryRepository`. Corrigido introduzindo a
+interface + `PurchaseAttemptModel` (modelo de domínio puro, sem Room).
+
 ## Anti-duplicidade de cobrança (requisito não-funcional crítico)
 
 Ponto mais sensível do case. Estratégia adotada em `feature-payment`:
@@ -92,8 +123,8 @@ Ponto mais sensível do case. Estratégia adotada em `feature-payment`:
 1. Cada **pedido** (não cada request HTTP) recebe uma `idempotencyKey`
    (UUID) gerada uma única vez pela `PaymentViewModel`, sobrevivendo a
    qualquer reenvio dentro daquela tela (retry de rede, duplo toque).
-2. Antes de chamar o gateway, `ProcessPaymentUseCase` grava no Room
-   (`PurchaseAttemptDao`) uma linha `PENDING` com essa chave.
+2. Antes de chamar o gateway, `ProcessPaymentUseCase` grava (via
+   `PurchaseRepository`) uma linha `PENDING` com essa chave.
 3. Se a mesma chave já tiver uma tentativa `APPROVED` (já cobrou) ou
    `PENDING` (pode estar em andamento) registrada, o caso de uso **não
    chama a Cielo de novo** — retorna o resultado já persistido. `DENIED`/
@@ -216,10 +247,12 @@ domínio inteiro, e o próprio ViewModel recarrega o que precisa via
 `SavedStateHandle` + um `UseCase` (`GetEventByIdUseCase`, `GetReceiptUseCase`):
 
 - `TicketSelectionViewModel`/`PaymentViewModel` reconstroem o
-  `Event`/`PurchaseOrder` a partir do `eventId`.
-- `ReceiptViewModel` reconstrói o `PurchaseReceipt` inteiro a partir só da
-  `idempotencyKey`, combinando `PurchaseAttemptDao.findByKey` +
-  `EventDao.getById` — por isso `feature-receipt` ganhou uma camada
+  `EventModel`/`PurchaseOrderModel` a partir do `eventId`.
+- `ReceiptViewModel` reconstrói o `PurchaseReceiptModel` inteiro a partir só
+  da `idempotencyKey`, via `ReceiptRepository` (que por baixo combina
+  `PurchaseAttemptDao.findByKey` — hoje o comprovante não precisa mais
+  cruzar com `EventDao`, o `eventTitle` já vem denormalizado na própria
+  `PurchaseAttempt`) — por isso `feature-receipt` ganhou uma camada
   `domain/data/di` completa (antes era só 2 arquivos de `presentation`,
   sem repositório nenhum).
 - **Ponto crítico**: a `idempotencyKey` gerada pela `PaymentViewModel` é
@@ -249,10 +282,15 @@ ponta a ponta) pegariam a quebra na hora.
 - `HomeViewModelTest`: sucesso ao carregar eventos reflete no `StateFlow`;
   catálogo vazio vira `Success(emptyList())`, não `Error` (são branches
   diferentes — só falha de repositório é erro).
-- `TicketSelectionViewModelTest`/`PaymentViewModelTest`/`ReceiptViewModelTest`:
-  carregam o domínio a partir do `eventId`/`idempotencyKey` da rota (mock de
-  `GetEventByIdUseCase`/`GetReceiptUseCase`), cobrindo sucesso e "não
-  encontrado".
+- `TicketSelectionViewModelTest`/`PaymentViewModelTest`/`ReceiptViewModelTest`/
+  `HistoryViewModelTest`: carregam o domínio a partir do `eventId`/
+  `idempotencyKey` da rota (mock de `GetEventByIdUseCase`/`GetReceiptUseCase`/
+  `GetPurchaseHistoryUseCase`), cobrindo sucesso e "não encontrado".
+- `EventRepositoryImplTest`: cobre o fallback offline-first — rede falha,
+  cai pro cache do Room; cache vazio e rede falha, propaga o erro de
+  verdade.
+- `EventMapperTest` (`core-network`): `EventResponse` → `EventModel`
+  preserva todos os campos, `imageUrl` nulo no JSON não quebra o parse.
 - `ProcessPaymentUseCaseTest`:
   - reenvio com a mesma `idempotencyKey` **não** dispara nova chamada ao
     gateway (o teste que mais importa para este case);
@@ -278,10 +316,11 @@ ecossistema sem ganho real, então os dois convivem no projeto por design
   reconfigura (`nextResult`/`responseDelayMs`) antes de tocar em "Pagar".
   Sem isso, o teste dependeria de um emulador Cielo Smart instalado no
   dispositivo de CI e de interação manual no app dele.
-- `TestLocalStorageModule` — Room em memória, populado de forma síncrona
-  (a versão de produção popula via coroutine fire-and-forget no `onCreate`
-  — ver `LocalStorageModule` —, o que é uma corrida aceitável em produção
-  mas indesejável num teste determinístico).
+- `TestLocalStorageModule` — Room em memória, sem seed (o catálogo não é
+  mais fixo desde o mockapi.io).
+- `TestEventNetworkModule` — substitui `EventNetworkModule` por
+  `FakeEventRemoteDataSource` (mesma fixture `SeedEvents` da produção),
+  pra não depender do mockapi.io de verdade nem ficar não-determinístico.
 
 **Cobertura**: `HomeScreenInstrumentedTest` (CT-01) e
 `PurchaseFlowInstrumentedTest` (CT-02 a CT-05 + duas regressões achadas via
@@ -303,10 +342,9 @@ gastar tempo de emulador num build já quebrado):
   que sobe um emulador Android de verdade (API 34) no próprio runner
   hospedado do GitHub (usa KVM, sem custo de infra própria).
 
-Fica pronto pra funcionar assim que o repositório for publicado num remoto
-— não requer nenhum segredo/credencial (os testes usam
-`ControllableFakePaymentGateway`/Room em memória, nunca a Cielo Smart real
-ou credenciais de produção).
+Não requer nenhum segredo/credencial (os testes usam
+`ControllableFakePaymentGateway`/Room em memória/`FakeEventRemoteDataSource`,
+nunca a Cielo Smart ou o mockapi.io reais, nem credenciais de produção).
 
 ## Lint como gate de verdade {#lint}
 
@@ -325,20 +363,30 @@ removida. O check `Typos` foi desligado (`disable += "Typos"`) porque usa
 dicionário em inglês e o app é 100% pt-BR — só gera falso positivo (ex:
 "momento" acusado como erro de "memento").
 
-**`app/lint-baseline.xml`** (comitado) captura os achados de
-`AndroidGradlePluginVersion`/`GradleDependency`/`NewerVersionAvailable` sobre
-o grupo de dependências deliberadamente preso numa versão mais antiga — ver
-o comentário no topo de `gradle/libs.versions.toml` pra detalhes de por quê
-(resumo: `agp`/`kotlin`/`ksp`/`hilt`/`composeBom`/`room`/toda a família
-`androidx.activity`/`lifecycle`/`navigation` formam um grupo acoplado; subir
-qualquer um force um bump de AGP pra série 9.x, testado empiricamente).
+`GradleDependency`/`NewerVersionAvailable` também estão desligados
+(`disable +=`), não só baselineados: essas checagens batem o Maven Central
+pra ver se há versão mais nova de cada dependência, mas isso é best-effort
+— em ambiente com conectividade instável, cada rodada de lint resolve um
+subconjunto diferente de dependências, gerando achado "novo" fora do
+baseline sem nenhuma mudança de versão real ter acontecido. `agp`/`kotlin`/
+`ksp`/`hilt`/`composeBom`/`room`/toda a família `androidx.activity`/
+`lifecycle`/`navigation` já são um grupo deliberadamente preso numa versão
+mais antiga (ver comentário no topo de `gradle/libs.versions.toml` — subir
+qualquer um força um bump de AGP pra série 9.x, testado empiricamente), então
+o sinal desses dois checks nunca seria acionável mesmo funcionando de forma
+estável.
+
+**`app/lint-baseline.xml`** (comitado) captura os achados aceitos
+conscientemente que sobram (`AndroidGradlePluginVersion` e outros).
 Achado novo fora do baseline quebra o build de propósito. Pra atualizar o
-baseline depois de um upgrade real desse grupo: `./gradlew :app:updateLintBaseline`.
+baseline depois de uma limpeza real: `./gradlew :app:updateLintBaseline`.
 
 ## Deploy: build types, ProGuard/R8 e assinatura {#deploy}
 
-Dois build types (não product flavors — não há ambiente/backend diferente
-pra flavorizar, já que o app não faz chamada de rede nenhuma):
+Dois build types (não product flavors — `API_BASE_URL`/credenciais Cielo já
+resolvem dev vs. produção via `local.properties`/variável de ambiente, ver
+`#deploy` abaixo; não há múltiplos ambientes de backend a ponto de
+justificar flavor dedicado):
 
 - **`debug`**: `applicationIdSuffix = ".dev"` + `versionNameSuffix = "-dev"`
   + nome do app "Cielo Tickets Dev" (`app/src/debug/res/values/strings.xml`
@@ -370,22 +418,33 @@ Cielo Smart espera viria com nomes errados, e o pagamento real quebraria
 silenciosamente. É exatamente o tipo de bug que só aparece em produção,
 nunca em debug (onde `isMinifyEnabled = false`).
 
-**Permissão de INTERNET removida do manifest**: sobrava do antigo
-`core-network` (ver histórico) — o app não faz nenhuma chamada de rede hoje
-(eventos são locais, pagamento é via Deeplink/Intent). Pedir uma permissão
-que não é usada é ruído na revisão de loja e no consentimento do usuário.
+**Permissão de INTERNET**: necessária pro catálogo de eventos via
+mockapi.io (`core-network`) — pagamento continua sendo Deeplink/Intent pra
+Cielo Smart, não HTTP. `API_BASE_URL` (aponta pro projeto no mockapi.io) é
+lida de `local.properties`/variável de ambiente, mesmo mecanismo de
+`CIELO_CLIENT_ID`/`CIELO_ACCESS_TOKEN` — sem configurar, cai num
+placeholder óbvio e o app continua compilando (só a chamada de rede falha
+em runtime, cai pro cache/`FakeEventRemoteDataSource` dependendo do
+binding ativo).
 
 ## Trade-offs assumidos
 
-- Sem backend próprio (o case libera essa opção, e pede eventos locais —
-  ver `docs/desafio.md`, CT-01): o catálogo de eventos é 100% local,
-  populado uma única vez no Room via `SeedEvents` na criação do banco. Em
-  produção, `EventRepositoryImpl` seria o único ponto a trocar para buscar
-  de uma API real, sem tocar em `domain`/`presentation`.
+- Backend via mockapi.io (o case libera tanto catálogo local quanto uma API
+  real — ver `docs/desafio.md`, CT-01): o catálogo de eventos vem de um
+  `GET /events` real, com o Room como cache offline-first (`EventDao`), não
+  como fonte de verdade. `SeedEvents` continua existindo só como fixture
+  (usada por `FakeEventRemoteDataSource` e pelos testes instrumentados),
+  não popula mais o banco de produção. Trocar de mockapi.io pra uma API
+  própria no futuro é mudar `EventApiService`/`EventResponse`
+  (`core-network`), sem tocar em `domain`/`presentation`.
 - Room com `fallbackToDestructiveMigration()`: aceitável para o escopo do
   desafio; produção exigiria migrations versionadas.
-- Sem product flavors para trocar credencial Cielo dev/produção — hoje é
-  `local.properties`/variável de ambiente manual (ver `#deploy`). Aceitável
-  para o escopo do case (não há múltiplos ambientes de backend pra
-  flavorizar), mas um app publicado precisaria de um processo mais formal
-  de gestão de segredo por ambiente.
+- Sem product flavors para trocar credencial Cielo dev/produção nem
+  `API_BASE_URL` do mockapi.io — hoje é `local.properties`/variável de
+  ambiente manual (ver `#deploy`). Aceitável para o escopo do case, mas um
+  app publicado precisaria de um processo mais formal de gestão de segredo
+  por ambiente.
+- `feature-history` (histórico de compras) é escopo extra, não pedido pelo
+  case original (`docs/desafio.md`/`docs/SPECS.md` cobrem só os requisitos
+  1-5) — adicionada por completude, segue o mesmo padrão
+  `domain/data/presentation/di` das demais features.

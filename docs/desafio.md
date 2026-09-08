@@ -13,6 +13,7 @@ O projeto foi construído seguindo rigorosamente os padrões de engenharia de so
 * **Linguagem:** 100% **Kotlin**, com uso extensivo de Coroutines e Flows assíncronos.
 * **Injeção de Dependência:** Hilt para gerenciamento limpo do ciclo de vida das instâncias.
 * **Testabilidade:** Testes unitários puros na JVM utilizando **JUnit 5**, **MockK** e **Turbine** para fluxos reativos.
+* **Consumo de API REST:** catálogo de eventos via [mockapi.io](https://mockapi.io) com Retrofit/OkHttp, cache offline-first em Room — a rede é a fonte de verdade, o cache local só cobre indisponibilidade.
 
 ---
 
@@ -36,11 +37,11 @@ O projeto conta com uma suíte de testes robusta cobrindo cenários críticos de
 ### A. Matriz de Casos de Teste Funcionais
 | ID | Cenário / Funcionalidade | Passos de Execução | Resultado Esperado | Tipo |
 | :--- | :--- | :--- | :--- | :--- |
-| **CT-01** | Listagem de Eventos | Abrir a tela inicial do app. | Exibe eventos locais com título, data e preço corretos. | Unitário / UI |
+| **CT-01** | Listagem de Eventos | Abrir a tela inicial do app. | Exibe eventos (via mockapi.io, com cache local offline-first) com título, data e preço corretos. | Unitário / UI |
 | **CT-02** | Seleção de Ingressos | Selecionar quantidade (ex: 2 unidades). | Recalcula o valor total de forma precisa no ViewModel. | Unitário |
 | **CT-03** | Pagamento Aprovado | Acionar pagamento via Cielo (Simulador Sucesso). | Transação concluída, salvamento e exibição do comprovante/QR Code. | Integração |
 | **CT-04** | Pagamento Negado | Simular cartão negado no emulador Cielo. | Exibe alerta de erro sem quebrar o fluxo; permite nova tentativa. | Tratamento de Erro |
-| **CT-05** | Prevenção de Duplicidade | Pressionar o botão de pagamento rapidamente várias vezes. | Botão desabilitado no primeiro clique (`isButtonEnabled = false`). | Não-Funcional |
+| **CT-05** | Prevenção de Duplicidade | Pressionar o botão de pagamento rapidamente várias vezes. | Primeiro clique já troca a tela pro estado `Processing` (spinner + botão "Cancelar"), removendo o botão de pagar — segundo clique é ignorado no ViewModel mesmo que a UI ainda reagisse. | Não-Funcional |
 
 ### B. Testes Automatizados (JUnit 5 + MockK + Turbine)
 * **UseCases (Domínio):** Validação de regras de negócio puras e tratamento de parâmetros inválidos.
@@ -74,8 +75,9 @@ A IA foi utilizada de forma estratégica como copiloto de desenvolvimento (*AI-A
 
 ## 📋 6. Trade-offs e O Que Faria com Mais Tempo
 
-* **Trade-off (Persistência):** Utilizou-se Room para persistência local leve visando robustez offline-first, em vez de depender exclusivamente de memória volátil.
+* **Trade-off (Persistência):** Utilizou-se Room como cache offline-first do catálogo (fonte de verdade é o mockapi.io) e como única fonte de verdade da trilha de idempotência de pagamento, em vez de depender exclusivamente de memória volátil.
 * **Testes instrumentados (E2E) com Compose UI Test:** implementados em `app/src/androidTest` — cobrem a jornada completa (Home → Seleção → Pagamento → Comprovante) via `PaymentGateway` fake controlável por teste, sem depender do emulador físico da Cielo Smart. Ver `docs/ARCHITECTURE.md#instrumented-tests`.
 * **Sobrevivência a `process death`:** rotas tipadas (Navigation-Compose 2.8) + `SavedStateHandle` — nenhum dado de domínio fica em `remember` no `NavHost`, e a `idempotencyKey` do pagamento sobrevive à recriação do processo (fecha uma janela real de cobrança duplicada). Ver `docs/ARCHITECTURE.md#process-death`.
-* **CI local pronto pra ligar:** `.github/workflows/ci.yml` roda build+lint+testes unitários e instrumentados a cada push/PR — só falta o repositório remoto pra ativar de verdade.
+* **CI ativo:** `.github/workflows/ci.yml` roda build+lint+testes unitários e instrumentados a cada push/PR pra `main` no repositório publicado.
+* **Escopo extra:** histórico de compras (`feature-history`) — não pedido pelo case original, adicionado por completude seguindo o mesmo padrão arquitetural das demais features.
 * **Com mais tempo:** rodaria a suíte instrumentada em mais de uma configuração de tela/densidade via Firebase Test Lab ou similar, e faria o upgrade de toolchain (AGP/Kotlin/Hilt/Compose BOM/Room) deliberadamente adiado hoje (ver `gradle/libs.versions.toml`).
