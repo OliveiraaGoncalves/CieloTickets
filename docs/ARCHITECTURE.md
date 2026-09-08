@@ -21,6 +21,57 @@ app                        (orquestração, @HiltAndroidApp, NavHost — conhece
                                        não pedido pelo case original)
 ```
 
+### Grafo de dependências
+
+Setas sólidas = dependência explícita (`implementation(projects.x)`) no
+`build.gradle.kts` do módulo. Setas tracejadas = dependência implícita,
+injetada automaticamente pelo plugin de convenção `cielotickets.android.
+feature` em toda `feature:*` (ver seção `build-logic` abaixo) — por isso
+não aparece escrita em nenhum `build.gradle.kts` de feature.
+
+```mermaid
+graph TD
+    APP["app<br/>orquestração, NavHost,<br/>@HiltAndroidApp — conhece tudo"]
+
+    subgraph FEATURES["feature:*"]
+        FHOME["feature-home<br/>listar eventos"]
+        FTICKET["feature-ticket-selection<br/>escolher quantidade"]
+        FPAY["feature-payment<br/>cobrança + anti-duplicidade"]
+        FRECEIPT["feature-receipt<br/>comprovante + QR code"]
+        FHIST["feature-history<br/>histórico de compras (extra)"]
+    end
+
+    subgraph CORE["core:*"]
+        CCOMMON["core-common<br/>AppResult/DomainError/UseCase base,<br/>modelos de domínio compartilhados"]
+        CNETWORK["core-network<br/>Retrofit/OkHttp — mockapi.io"]
+        CSTORAGE["core-local-storage<br/>Room: idempotência + cache de eventos"]
+        CPAYMENT["core-payment-cielo<br/>Deeplink Cielo Smart"]
+        CDESIGN["core-designsystem<br/>tema Compose, loading/erro"]
+    end
+
+    APP --> FEATURES
+    APP --> CORE
+
+    FHOME --> CSTORAGE
+    FHOME --> CNETWORK
+    FPAY --> CSTORAGE
+    FPAY --> CPAYMENT
+    FRECEIPT --> CSTORAGE
+    FHIST --> CSTORAGE
+
+    FEATURES -.->|"implícito via convention plugin"| CCOMMON
+    FEATURES -.-> CDESIGN
+
+    CNETWORK --> CCOMMON
+    CSTORAGE --> CCOMMON
+    CPAYMENT --> CCOMMON
+```
+
+Único ponto onde `feature:*` depende de outra `feature:*`: nenhum hoje —
+todo modelo compartilhado (`EventModel`, `PurchaseOrderModel`) foi movido
+pra `core-common` de propósito (ver "Por que Clean Architecture" abaixo),
+exatamente pra não precisar dessa aresta.
+
 O catálogo de eventos vem de uma API real (mockapi.io, via `core-network`),
 não é mais fixo/local — `EventRepositoryImpl` (`feature-home/data`) tenta a
 rede primeiro e cai pro cache do Room (`EventDao`) só se a chamada falhar
@@ -60,6 +111,31 @@ Plugins registrados (aplicados via `alias(libs.plugins.cielotickets.*)`):
 - `cielotickets.android.test.junit5`: `testOptions.unitTests.useJUnitPlatform()`
   + JUnit5/MockK/Turbine, nos módulos com testes reais (`core-network` e as
   5 `feature:*`).
+
+### Composição dos plugins
+
+`cielotickets.android.feature` não é um plugin do zero — é composição dos
+outros três + dependências fixas que toda feature com `@HiltViewModel` via
+Compose precisa. É por isso que o `build.gradle.kts` de uma feature nova
+(ex. `feature-history`, 10 linhas — `plugins {}` + `dependencies {}`, nem
+precisa de bloco `android {}`, já que o `namespace` também é automático —
+ver adiante) não repete `compileSdk`/`minSdk`/Compose/Hilt/navigation:
+
+```mermaid
+graph LR
+    LIB["cielotickets.android.library<br/>compileSdk/minSdk/<br/>compileOptions/jvmTarget"]
+    COMPOSE["cielotickets.android.compose<br/>+ compilador Compose +<br/>BOM/ui/material3/tooling"]
+    HILT["cielotickets.android.hilt<br/>+ KSP + hilt-android/hilt-compiler"]
+    FEATURE["cielotickets.android.feature<br/>+ navigation-compose +<br/>hilt-navigation-compose +<br/>core-common + core-designsystem"]
+
+    FEATURE --> LIB
+    FEATURE --> COMPOSE
+    FEATURE --> HILT
+```
+
+`cielotickets.android.test.junit5` fica de fora dessa composição de
+propósito — nem todo módulo tem teste real, então é aplicado à parte só
+onde há suíte (ver lista acima).
 
 Dependências entre módulos usam os accessors tipados do Gradle
 (`enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")` no `settings.gradle.kts`

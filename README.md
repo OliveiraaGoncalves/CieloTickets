@@ -53,10 +53,12 @@ Pra rodar o app de verdade:
 
 **Fluxo de dependências** (verificável pelo grafo do Gradle, não é só
 convenção): `core:*` nunca depende de `feature:*`; `feature:*` depende de
-`core:*` e, quando compartilha modelo de domínio, de outra `feature:*`
-específica; só o `app` conhece todas as features. O `domain` de cada
-feature é 100% Kotlin puro — sem `import android.*`, sem Room, sem
-Retrofit — só `data/` conhece framework.
+`core:*`, nunca de outra `feature:*` (todo modelo compartilhado, tipo
+`EventModel`, mora em `core-common` de propósito); só o `app` conhece
+todas as features. O `domain` de cada feature é 100% Kotlin puro — sem
+`import android.*`, sem Room, sem Retrofit — só `data/` conhece framework.
+Grafo completo com a responsabilidade de cada módulo:
+`docs/ARCHITECTURE.md#grafo-de-dependências`.
 
 **UDF**: cada tela expõe um único `StateFlow<UiState>` (ou um sealed
 state próprio pra fluxos transacionais, como `PaymentUiState`), consumido
