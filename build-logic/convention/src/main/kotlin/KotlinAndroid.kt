@@ -1,3 +1,5 @@
+package br.com.cielotickets.buildlogic.convention
+
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
@@ -10,6 +12,7 @@ internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
     commonExtension.apply {
+        namespace = deriveNamespace()
         compileSdk = 34
 
         defaultConfig {
@@ -27,4 +30,27 @@ internal fun Project.configureKotlinAndroid(
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
+}
+
+/**
+ * Deriva o namespace do path do módulo Gradle, sem precisar repetir
+ * `namespace = "br.com.cielotickets.x.y"` em cada `build.gradle.kts`:
+ * `:core:core-local-storage` -> `br.com.cielotickets.core.localstorage`,
+ * `:feature:feature-ticket-selection` -> `br.com.cielotickets.feature.ticketselection`,
+ * `:app` -> `br.com.cielotickets.app`. Um módulo com nome fora desse padrão
+ * ainda pode sobrescrever definindo `namespace = "..."` no próprio
+ * `build.gradle.kts` — a atribuição do script roda depois da do plugin.
+ */
+private fun Project.deriveNamespace(): String {
+    val segments = path.removePrefix(":").split(":")
+    val cleaned = segments.mapIndexed { index, segment ->
+        val parent = segments.getOrNull(index - 1)
+        val stripped = if (parent != null && segment.startsWith("$parent-")) {
+            segment.removePrefix("$parent-")
+        } else {
+            segment
+        }
+        stripped.replace("-", "")
+    }
+    return "br.com.cielotickets." + cleaned.joinToString(".")
 }

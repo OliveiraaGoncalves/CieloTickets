@@ -4,13 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-android {
-    namespace = "br.com.cielotickets.feature.ticketselection"
-}
-
 dependencies {
-    implementation(projects.feature.featureHome) // reaproveita o domain Event
+    // `Event`/`GetEventByIdUseCase` moraram pra core-common (ver
+    // docs/ARCHITECTURE.md) — nenhuma feature depende de outra feature.
     // `TicketSelectionRoute` (navigation/) é `@Serializable` — usada pela
     // Navigation-Compose pra codificar o eventId no SavedStateHandle.
-    implementation(libs.findLibrary("kotlinx-serialization-json").get())
+    implementation(libs.kotlinx.serialization.json)
 }

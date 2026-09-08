@@ -15,7 +15,6 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "br.com.cielotickets.app"
     defaultConfig {
         applicationId = "br.com.cielotickets.app"
         versionCode = 1
@@ -94,11 +93,12 @@ dependencies {
     implementation(projects.feature.featureTicketSelection)
     implementation(projects.feature.featurePayment)
     implementation(projects.feature.featureReceipt)
+    implementation(projects.feature.featureHistory)
 
     // Rotas type-safe do NavHost (`navigation/CieloRoutes.kt`) usam
     // `@Serializable` — é assim que a Navigation-Compose 2.8 codifica os
     // argumentos de rota no SavedStateHandle.
-    implementation(libs.findLibrary("kotlinx-serialization-json").get())
+    implementation(libs.kotlinx.serialization.json)
 
     // androidTest não herda `implementation` do main source set — precisa
     // dos módulos de novo pra compilar os fakes de DI e os asserts de UI.
@@ -110,18 +110,20 @@ dependencies {
     androidTestImplementation(projects.feature.featurePayment)
     androidTestImplementation(projects.feature.featureTicketSelection)
     androidTestImplementation(projects.feature.featureReceipt)
+    androidTestImplementation(projects.feature.featureHistory)
+    androidTestImplementation(projects.core.coreNetwork)
 
-    androidTestImplementation(libs.findLibrary("hilt-android-testing").get())
-    kspAndroidTest(libs.findLibrary("hilt-compiler").get())
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
     // `implementation` no core-local-storage não propaga pro classpath de
     // compilação do androidTest — precisa declarar nome a nome de novo.
-    androidTestImplementation(libs.findLibrary("room-runtime").get())
+    androidTestImplementation(libs.room.runtime)
 
-    androidTestImplementation(platform(libs.findLibrary("compose-bom").get()))
-    androidTestImplementation(libs.findLibrary("compose-ui-test-junit4").get())
-    debugImplementation(libs.findLibrary("compose-ui-test-manifest").get())
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 
-    androidTestImplementation(libs.findLibrary("androidx-test-ext-junit").get())
-    androidTestImplementation(libs.findLibrary("androidx-test-runner").get())
-    androidTestImplementation(libs.findLibrary("espresso-core").get())
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.espresso.core)
 }

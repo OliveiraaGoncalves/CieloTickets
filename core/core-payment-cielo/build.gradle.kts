@@ -19,8 +19,6 @@ fun cieloSecret(key: String): String =
     localProperties.getProperty(key) ?: System.getenv(key) ?: "SEU_${key.removePrefix("CIELO_")}_AQUI"
 
 android {
-    namespace = "br.com.cielotickets.core.paymentcielo"
-
     buildFeatures {
         buildConfig = true
     }
@@ -31,13 +29,10 @@ android {
     }
 }
 
-// `libs.xxx.yyy` tipado não fica disponível num módulo que também aplica
-// um plugin de convenção vindo do `build-logic` (includeBuild) — o método
-// genérico `findLibrary("nome-no-toml")` do mesmo `libs` continua ok.
 dependencies {
     implementation(projects.core.coreCommon)
-    implementation(libs.findLibrary("kotlinx-coroutines-android").get())
-    implementation(libs.findLibrary("kotlinx-serialization-json").get())
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
     // Integração via DEEPLINK (recomendada pela Cielo desde a descontinuação
     // do SDK) — NÃO depende de nenhum .aar/.m2 local. Ver docs/ARCHITECTURE.md
     // e https://github.com/DeveloperCielo/LIO-SDK-Sample-Integracao-Local

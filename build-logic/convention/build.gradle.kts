@@ -18,27 +18,27 @@ gradlePlugin {
     plugins {
         register("androidLibrary") {
             id = "cielotickets.android.library"
-            implementationClass = "AndroidLibraryConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidLibraryConventionPlugin"
         }
         register("androidApplication") {
             id = "cielotickets.android.application"
-            implementationClass = "AndroidApplicationConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidApplicationConventionPlugin"
         }
         register("androidCompose") {
             id = "cielotickets.android.compose"
-            implementationClass = "AndroidComposeConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidComposeConventionPlugin"
         }
         register("androidHilt") {
             id = "cielotickets.android.hilt"
-            implementationClass = "AndroidHiltConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidHiltConventionPlugin"
         }
         register("androidFeature") {
             id = "cielotickets.android.feature"
-            implementationClass = "AndroidFeatureConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidFeatureConventionPlugin"
         }
         register("androidTestJunit5") {
             id = "cielotickets.android.test.junit5"
-            implementationClass = "AndroidTestJunit5ConventionPlugin"
+            implementationClass = "br.com.cielotickets.buildlogic.convention.AndroidTestJunit5ConventionPlugin"
         }
     }
 }
