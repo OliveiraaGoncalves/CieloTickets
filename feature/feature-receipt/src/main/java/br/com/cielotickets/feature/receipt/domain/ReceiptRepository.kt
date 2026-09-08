@@ -1,9 +1,8 @@
 package br.com.cielotickets.feature.receipt.domain
 
 import br.com.cielotickets.core.common.AppResult
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
+import br.com.cielotickets.core.common.PurchaseReceiptModel
 
-/** Porta de domínio — reconstrói o comprovante a partir só da idempotencyKey. */
 interface ReceiptRepository {
-    suspend fun getReceipt(idempotencyKey: String): AppResult<PurchaseReceipt>
+    suspend fun getReceipt(idempotencyKey: String): AppResult<PurchaseReceiptModel>
 }

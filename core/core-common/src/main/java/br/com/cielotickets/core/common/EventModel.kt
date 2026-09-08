@@ -1,6 +1,6 @@
-package br.com.cielotickets.feature.home.domain
+package br.com.cielotickets.core.common
 
-data class Event(
+data class EventModel(
     val id: String,
     val title: String,
     val venue: String,

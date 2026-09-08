@@ -1,13 +1,8 @@
-package br.com.cielotickets.core.localstorage.db
+package br.com.cielotickets.core.common
 
-/**
- * Catálogo fixo inserido na criação do banco (ver [LocalStorageModule]).
- * Substitui o antigo `EventApi` (Retrofit) — o case não exige backend
- * próprio e pede explicitamente eventos locais (docs/desafio.md, CT-01).
- */
 object SeedEvents {
     val all = listOf(
-        EventEntity(
+        EventModel(
             id = "evt-1",
             title = "Show Nacional Tour 2026",
             venue = "Arena Anhembi, São Paulo",
@@ -16,7 +11,7 @@ object SeedEvents {
             availableTickets = 120,
             imageUrl = null
         ),
-        EventEntity(
+        EventModel(
             id = "evt-2",
             title = "Festival de Inverno",
             venue = "Parque Ibirapuera, São Paulo",
@@ -25,7 +20,7 @@ object SeedEvents {
             availableTickets = 300,
             imageUrl = null
         ),
-        EventEntity(
+        EventModel(
             id = "evt-3",
             title = "Stand-up Comedy Night",
             venue = "Teatro Bradesco, São Paulo",
@@ -34,7 +29,7 @@ object SeedEvents {
             availableTickets = 60,
             imageUrl = null
         ),
-        EventEntity(
+        EventModel(
             id = "evt-4",
             title = "Peça Teatral: O Alienista",
             venue = "Teatro Municipal, Rio de Janeiro",
@@ -43,7 +38,7 @@ object SeedEvents {
             availableTickets = 80,
             imageUrl = null
         ),
-        EventEntity(
+        EventModel(
             id = "evt-5",
             title = "Final de Copa Regional",
             venue = "Estádio Municipal, Curitiba",
