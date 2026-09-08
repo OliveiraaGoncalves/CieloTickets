@@ -1,0 +1,13 @@
+<resources>
+    <string name="history_title">Histórico de compras</string>
+    <string name="history_loading">Carregando histórico…</string>
+    <string name="history_empty">Você ainda não fez nenhuma compra.</string>
+    <string name="history_error_loading">Não foi possível carregar o histórico. Puxe para tentar novamente.</string>
+    <string name="history_label_tickets">Ingressos</string>
+    <string name="history_label_total">Total</string>
+
+    <string name="history_status_approved">Aprovada</string>
+    <string name="history_status_denied">Negada</string>
+    <string name="history_status_cancelled">Cancelada</string>
+    <string name="history_status_pending">Pendente</string>
+</resources>
