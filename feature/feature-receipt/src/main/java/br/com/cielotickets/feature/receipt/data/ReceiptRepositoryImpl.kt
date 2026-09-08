@@ -2,39 +2,36 @@ package br.com.cielotickets.feature.receipt.data
 
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.DomainError
-import br.com.cielotickets.core.localstorage.db.EventDao
+import br.com.cielotickets.core.common.PurchaseOrderModel
+import br.com.cielotickets.core.common.PurchaseReceiptModel
+import br.com.cielotickets.core.common.PurchaseStatus
 import br.com.cielotickets.core.localstorage.db.PurchaseAttemptDao
-import br.com.cielotickets.feature.payment.domain.PurchaseOrder
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
-import br.com.cielotickets.feature.payment.domain.PurchaseStatus
 import br.com.cielotickets.feature.receipt.domain.ReceiptRepository
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
-/**
- * Reconstrói o comprovante a partir só da `idempotencyKey` (rota
- * [br.com.cielotickets.feature.receipt.navigation.ReceiptRoute]) — a
- * `PurchaseAttempt` já tem tudo (status, valor, transactionId), só falta o
- * título do evento, que vem de uma segunda consulta ao [EventDao].
- */
 class ReceiptRepositoryImpl @Inject constructor(
-    private val purchaseAttemptDao: PurchaseAttemptDao,
-    private val eventDao: EventDao
+    private val purchaseAttemptDao: PurchaseAttemptDao
 ) : ReceiptRepository {
-    override suspend fun getReceipt(idempotencyKey: String): AppResult<PurchaseReceipt> = try {
+
+    companion object {
+        private const val ERROR_RECEIPT_NOT_FOUND = "Comprovante não encontrado"
+        private const val ERROR_LOADING_RECEIPT = "Não foi possível carregar o comprovante"
+    }
+
+    override suspend fun getReceipt(idempotencyKey: String): AppResult<PurchaseReceiptModel> = try {
         val attempt = purchaseAttemptDao.findByKey(idempotencyKey)
         if (attempt == null) {
-            AppResult.Failure(DomainError.Unknown(message = "Comprovante não encontrado: $idempotencyKey"))
+            AppResult.Failure(DomainError.Unknown(message = "$ERROR_RECEIPT_NOT_FOUND: $idempotencyKey"))
         } else {
-            val event = eventDao.getById(attempt.eventId)
-            val order = PurchaseOrder(
+            val order = PurchaseOrderModel(
                 eventId = attempt.eventId,
-                eventTitle = event?.title ?: attempt.eventId,
+                eventTitle = attempt.eventTitle,
                 ticketQuantity = attempt.ticketQuantity,
                 totalAmountCents = attempt.totalAmountCents
             )
             AppResult.Success(
-                PurchaseReceipt(
+                PurchaseReceiptModel(
                     idempotencyKey = attempt.idempotencyKey,
                     order = order,
                     status = PurchaseStatus.valueOf(attempt.status),
@@ -45,6 +42,6 @@ class ReceiptRepositoryImpl @Inject constructor(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        AppResult.Failure(DomainError.Unknown(e, "Não foi possível carregar o comprovante"))
+        AppResult.Failure(DomainError.Unknown(e, ERROR_LOADING_RECEIPT))
     }
 }

@@ -1,9 +1,5 @@
 package br.com.cielotickets.core.common
 
-/**
- * Taxonomia de erros do domínio. Requisito não-funcional do case:
- * "tratamento explícito de erros de integração e pagamento".
- */
 sealed class DomainError {
     data class Network(val cause: Throwable) : DomainError()
     data class Timeout(val cause: Throwable) : DomainError()

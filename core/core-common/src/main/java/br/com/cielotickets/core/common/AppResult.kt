@@ -1,10 +1,5 @@
 package br.com.cielotickets.core.common
 
-/**
- * Wrapper de resultado usado em todas as fronteiras domain/data do app.
- * Evita exceptions "soltas" cruzando camadas — todo erro de integração
- * (rede, pagamento, storage) deve ser mapeado para um DomainError explícito.
- */
 sealed class AppResult<out T> {
     data class Success<T>(val data: T) : AppResult<T>()
     data class Failure(val error: DomainError) : AppResult<Nothing>()

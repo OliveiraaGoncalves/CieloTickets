@@ -14,9 +14,9 @@ interface PurchaseAttemptDao {
     @Update
     suspend fun update(attempt: PurchaseAttempt)
 
-    @Query("SELECT * FROM purchase_attempt WHERE idempotencyKey = :key LIMIT 1")
+    @Query("SELECT * FROM $PURCHASE_ATTEMPT_TABLE WHERE idempotencyKey = :key LIMIT 1")
     suspend fun findByKey(key: String): PurchaseAttempt?
 
-    @Query("SELECT * FROM purchase_attempt ORDER BY createdAtEpochMs DESC")
+    @Query("SELECT * FROM $PURCHASE_ATTEMPT_TABLE ORDER BY createdAtEpochMs DESC")
     suspend fun history(): List<PurchaseAttempt>
 }

@@ -3,12 +3,9 @@ package br.com.cielotickets.core.localstorage.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-/**
- * Catálogo de eventos local — o case libera não ter backend próprio
- * (ver docs/ARCHITECTURE.md), então esta tabela É a fonte de verdade dos
- * eventos disponíveis, populada uma única vez via [SeedEvents].
- */
-@Entity(tableName = "event")
+const val EVENT_TABLE = "event"
+
+@Entity(tableName = EVENT_TABLE)
 data class EventEntity(
     @PrimaryKey val id: String,
     val title: String,
