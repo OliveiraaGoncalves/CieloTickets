@@ -25,6 +25,17 @@ jobs:
       - name: Build + lint + testes unitários
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 
+      - name: Publicar APK debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          # Só o debug (sufixo .dev): sem keystore.properties (gitignorado,
+          # não existe no runner) o assembleRelease cai pra assinatura de
+          # debug — ver aviso em app/build.gradle.kts — publicar esse
+          # artefato como "release" seria enganoso.
+
       - name: Publicar relatórios (se falhar)
         if: failure()
         uses: actions/upload-artifact@v4
