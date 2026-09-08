@@ -4,12 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.DomainError
-import br.com.cielotickets.feature.home.domain.Event
-import br.com.cielotickets.feature.home.domain.GetEventByIdUseCase
+import br.com.cielotickets.core.common.EventModel
+import br.com.cielotickets.core.common.GetEventByIdUseCase
 import br.com.cielotickets.feature.payment.domain.ProcessPaymentUseCase
-import br.com.cielotickets.feature.payment.domain.PurchaseOrder
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
-import br.com.cielotickets.feature.payment.domain.PurchaseStatus
+import br.com.cielotickets.core.common.PurchaseOrderModel
+import br.com.cielotickets.core.common.PurchaseReceiptModel
+import br.com.cielotickets.core.common.PurchaseStatus
 import br.com.cielotickets.feature.payment.presentation.PaymentUiState
 import br.com.cielotickets.feature.payment.presentation.PaymentViewModel
 import io.mockk.coEvery
@@ -36,14 +36,14 @@ import org.junit.jupiter.api.Test
  * CT-05 ("Botão desabilitado no primeiro clique").
  *
  * O ViewModel recebe `eventId`+`quantity` via [SavedStateHandle] (rota
- * tipada) e reconstrói o [PurchaseOrder] via [GetEventByIdUseCase] — por
- * isso todo teste mocka esse use case em vez de passar um `PurchaseOrder`
+ * tipada) e reconstrói o [PurchaseOrderModel] via [GetEventByIdUseCase] — por
+ * isso todo teste mocka esse use case em vez de passar um `PurchaseOrderModel`
  * direto pro `pay()` (que não recebe mais parâmetro nenhum).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PaymentViewModelTest {
 
-    private val event = Event(
+    private val event = EventModel(
         id = "evt-1",
         title = "Show X",
         venue = "Arena Y",
@@ -52,7 +52,7 @@ class PaymentViewModelTest {
         availableTickets = 10,
         imageUrl = null
     )
-    private val order = PurchaseOrder(event.id, event.title, 2, 30000)
+    private val order = PurchaseOrderModel(event.id, event.title, 2, 30000)
 
     private val processPayment: ProcessPaymentUseCase = mockk()
     private val getEventById: GetEventByIdUseCase = mockk()
@@ -76,7 +76,7 @@ class PaymentViewModelTest {
 
     @Test
     fun `pagamento aprovado emite Idle, Processing e Success em sequencia`() = runTest {
-        val receipt = PurchaseReceipt("key-1", order, PurchaseStatus.APPROVED, "tx-1")
+        val receipt = PurchaseReceiptModel("key-1", order, PurchaseStatus.APPROVED, "tx-1")
         coEvery { processPayment(any(), any()) } returns AppResult.Success(receipt)
 
         val viewModel = viewModel()
@@ -147,7 +147,7 @@ class PaymentViewModelTest {
     fun `clique duplo enquanto processando nao chama o use case duas vezes`() = runTest {
         coEvery { processPayment(any(), any()) } coAnswers {
             delay(1000)
-            AppResult.Success(PurchaseReceipt("key-1", order, PurchaseStatus.APPROVED, "tx-1"))
+            AppResult.Success(PurchaseReceiptModel("key-1", order, PurchaseStatus.APPROVED, "tx-1"))
         }
 
         val viewModel = viewModel()
@@ -166,7 +166,7 @@ class PaymentViewModelTest {
     fun `cancelar enquanto processando nao deixa um resultado tardio sobrescrever o estado`() = runTest {
         coEvery { processPayment(any(), any()) } coAnswers {
             delay(10_000)
-            AppResult.Success(PurchaseReceipt("key-1", order, PurchaseStatus.APPROVED, "tx-1"))
+            AppResult.Success(PurchaseReceiptModel("key-1", order, PurchaseStatus.APPROVED, "tx-1"))
         }
 
         val viewModel = viewModel()

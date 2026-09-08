@@ -32,17 +32,17 @@ import br.com.cielotickets.core.designsystem.SecondaryButton
 import br.com.cielotickets.core.designsystem.SectionCard
 import br.com.cielotickets.core.designsystem.Spacing
 import br.com.cielotickets.feature.payment.R
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
+import br.com.cielotickets.core.common.PurchaseReceiptModel
 
 /**
- * Só recebe `onApproved`/`onCancelled`/`onBack` — o [PurchaseOrder][br.com.cielotickets.feature.payment.domain.PurchaseOrder]
+ * Só recebe `onApproved`/`onCancelled`/`onBack` — o [PurchaseOrderModel][br.com.cielotickets.core.common.PurchaseOrderModel]
  * vem do [PaymentViewModel], reconstruído a partir do `eventId`+`quantity`
  * da rota (ver docstring do ViewModel pra o porquê disso importar pra
  * sobrevivência a `process death`).
  */
 @Composable
 fun PaymentScreen(
-    onApproved: (PurchaseReceipt) -> Unit,
+    onApproved: (PurchaseReceiptModel) -> Unit,
     onCancelled: () -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: PaymentViewModel = hiltViewModel()

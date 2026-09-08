@@ -6,7 +6,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 
 /**
  * Requisito opcional: QR Code do ingresso, vinculado à compra CONCLUÍDA
- * (só é chamado a partir de um PurchaseReceipt com status APPROVED —
+ * (só é chamado a partir de um PurchaseReceiptModel com status APPROVED —
  * ver ReceiptScreen).
  */
 object QrCodeGenerator {

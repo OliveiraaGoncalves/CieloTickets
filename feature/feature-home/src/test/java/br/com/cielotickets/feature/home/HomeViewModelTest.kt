@@ -4,9 +4,9 @@ import app.cash.turbine.test
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.DomainError
 import br.com.cielotickets.core.common.UiState
-import br.com.cielotickets.feature.home.domain.Event
-import br.com.cielotickets.feature.home.domain.EventRepository
-import br.com.cielotickets.feature.home.domain.GetAvailableEventsUseCase
+import br.com.cielotickets.core.common.EventModel
+import br.com.cielotickets.core.common.EventRepository
+import br.com.cielotickets.core.common.GetAvailableEventsUseCaseImpl
 import br.com.cielotickets.feature.home.presentation.HomeViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -38,10 +38,10 @@ class HomeViewModelTest {
 
     @Test
     fun `quando carregar eventos com sucesso, uiState reflete a lista`() = runTest {
-        val fakeEvent = Event("1", "Show X", "Arena Y", "2026-10-10T20:00", 15000, 100, null)
+        val fakeEvent = EventModel("1", "Show X", "Arena Y", "2026-10-10T20:00", 15000, 100, null)
         coEvery { repository.getAvailableEvents() } returns AppResult.Success(listOf(fakeEvent))
 
-        viewModel = HomeViewModel(GetAvailableEventsUseCase(repository))
+        viewModel = HomeViewModel(GetAvailableEventsUseCaseImpl(repository))
 
         viewModel.uiState.test {
             assert(awaitItem() is UiState.Loading)
@@ -57,7 +57,7 @@ class HomeViewModelTest {
         // a mensagem de "nenhum evento disponível" (ver HomeScreen).
         coEvery { repository.getAvailableEvents() } returns AppResult.Success(emptyList())
 
-        viewModel = HomeViewModel(GetAvailableEventsUseCase(repository))
+        viewModel = HomeViewModel(GetAvailableEventsUseCaseImpl(repository))
 
         viewModel.uiState.test {
             assert(awaitItem() is UiState.Loading)
@@ -72,7 +72,7 @@ class HomeViewModelTest {
             DomainError.Unknown(message = "falha")
         )
 
-        viewModel = HomeViewModel(GetAvailableEventsUseCase(repository))
+        viewModel = HomeViewModel(GetAvailableEventsUseCaseImpl(repository))
 
         viewModel.uiState.test {
             assert(awaitItem() is UiState.Loading)

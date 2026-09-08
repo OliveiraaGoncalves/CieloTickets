@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.com.cielotickets.feature.history.navigation.HistoryRoute
+import br.com.cielotickets.feature.history.presentation.HistoryScreen
 import br.com.cielotickets.feature.home.presentation.HomeScreen
 import br.com.cielotickets.feature.payment.navigation.PaymentRoute
 import br.com.cielotickets.feature.payment.presentation.PaymentScreen
@@ -30,9 +32,13 @@ fun CieloNavHost() {
 
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
-            HomeScreen(onEventSelected = { event ->
-                navController.navigate(TicketSelectionRoute(event.id))
-            })
+            HomeScreen(
+                onEventSelected = { event -> navController.navigate(TicketSelectionRoute(event.id)) },
+                onHistoryClick = { navController.navigate(HistoryRoute) }
+            )
+        }
+        composable<HistoryRoute> {
+            HistoryScreen(onBack = { navController.popBackStack() })
         }
         composable<TicketSelectionRoute> {
             TicketSelectionScreen(

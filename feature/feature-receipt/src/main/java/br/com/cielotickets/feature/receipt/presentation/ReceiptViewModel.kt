@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.UiState
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
+import br.com.cielotickets.core.common.PurchaseReceiptModel
 import br.com.cielotickets.feature.receipt.R
 import br.com.cielotickets.feature.receipt.domain.GetReceiptUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +21,7 @@ import javax.inject.Inject
  * Recebe só a `idempotencyKey` via [SavedStateHandle] (rota
  * `ReceiptRoute`, em `navigation/`) — sobrevive a `process death` porque
  * reconstrói o comprovante inteiro a partir do Room, em vez de receber um
- * [PurchaseReceipt] guardado em `remember` no NavHost. Lê a chave direto via
+ * [PurchaseReceiptModel] guardado em `remember` no NavHost. Lê a chave direto via
  * `get<String>()` em vez de `toRoute()` pelo mesmo motivo do
  * `TicketSelectionViewModel` (ver docstring de lá).
  */
@@ -33,8 +33,8 @@ class ReceiptViewModel @Inject constructor(
 
     private val idempotencyKey = checkNotNull(savedStateHandle.get<String>("idempotencyKey"))
 
-    private val _uiState = MutableStateFlow<UiState<PurchaseReceipt>>(UiState.Loading)
-    val uiState: StateFlow<UiState<PurchaseReceipt>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<PurchaseReceiptModel>>(UiState.Loading)
+    val uiState: StateFlow<UiState<PurchaseReceiptModel>> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {

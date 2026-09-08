@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.DomainError
-import br.com.cielotickets.feature.home.domain.GetEventByIdUseCase
+import br.com.cielotickets.core.common.GetEventByIdUseCase
 import br.com.cielotickets.feature.payment.R
 import br.com.cielotickets.feature.payment.domain.ProcessPaymentUseCase
-import br.com.cielotickets.feature.payment.domain.PurchaseOrder
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
+import br.com.cielotickets.core.common.PurchaseOrderModel
+import br.com.cielotickets.core.common.PurchaseReceiptModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +23,7 @@ import javax.inject.Inject
 sealed class PaymentUiState {
     data object Idle : PaymentUiState()
     data object Processing : PaymentUiState()
-    data class Success(val receipt: PurchaseReceipt) : PaymentUiState()
+    data class Success(val receipt: PurchaseReceiptModel) : PaymentUiState()
 
     /** Negada/erro genérico — fica na tela, oferece "Tentar novamente". */
     data class Failed(@StringRes val messageRes: Int) : PaymentUiState()
@@ -39,15 +39,15 @@ sealed class PaymentUiState {
 }
 
 data class PaymentScreenState(
-    /** Null enquanto o [PurchaseOrder] ainda não foi reconstruído a partir do eventId da rota. */
-    val order: PurchaseOrder? = null,
+    /** Null enquanto o [PurchaseOrderModel] ainda não foi reconstruído a partir do eventId da rota. */
+    val order: PurchaseOrderModel? = null,
     val orderLoadFailed: Boolean = false,
     val paymentState: PaymentUiState = PaymentUiState.Idle
 )
 
 /**
  * Recebe só `eventId`+`quantity` via [SavedStateHandle] (rota tipada
- * `PaymentRoute`, em `navigation/`) e reconstrói o [PurchaseOrder] sozinho —
+ * `PaymentRoute`, em `navigation/`) e reconstrói o [PurchaseOrderModel] sozinho —
  * mesma ideia do `TicketSelectionViewModel` (inclusive o porquê de ler os
  * campos direto via `get<T>()` em vez de `toRoute()`: ver docstring de lá).
  *
@@ -84,7 +84,7 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = getEventById(eventId)) {
                 is AppResult.Success -> _state.value = _state.value.copy(
-                    order = PurchaseOrder(
+                    order = PurchaseOrderModel(
                         eventId = result.data.id,
                         eventTitle = result.data.title,
                         ticketQuantity = quantity,

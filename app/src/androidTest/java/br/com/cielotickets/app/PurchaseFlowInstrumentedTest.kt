@@ -10,7 +10,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.cielotickets.app.di.ControllableFakePaymentGateway
 import br.com.cielotickets.core.common.centsToBrl
-import br.com.cielotickets.core.localstorage.db.SeedEvents
+import br.com.cielotickets.core.common.SeedEvents
 import br.com.cielotickets.core.paymentcielo.CieloChargeResult
 import br.com.cielotickets.core.paymentcielo.CieloPaymentGateway
 import br.com.cielotickets.feature.payment.R as PaymentR
@@ -188,7 +188,7 @@ class PurchaseFlowInstrumentedTest {
         composeTestRule.onNodeWithText((event.priceCents * 2).centsToBrl()).assertIsDisplayed()
     }
 
-    private fun abrirTelaDeSelecao(event: br.com.cielotickets.core.localstorage.db.EventEntity) {
+    private fun abrirTelaDeSelecao(event: br.com.cielotickets.core.common.EventModel) {
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule.onAllNodesWithText(event.title).fetchSemanticsNodes().isNotEmpty()
         }
@@ -201,7 +201,7 @@ class PurchaseFlowInstrumentedTest {
         }
     }
 
-    private fun abrirTelaDePagamento(event: br.com.cielotickets.core.localstorage.db.EventEntity, quantity: Int) {
+    private fun abrirTelaDePagamento(event: br.com.cielotickets.core.common.EventModel, quantity: Int) {
         abrirTelaDeSelecao(event)
         repeat(quantity - 1) {
             composeTestRule.onNodeWithContentDescription(

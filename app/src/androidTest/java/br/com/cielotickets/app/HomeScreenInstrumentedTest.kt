@@ -10,7 +10,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.cielotickets.core.common.centsToBrl
 import br.com.cielotickets.core.common.toFriendlyDateTime
-import br.com.cielotickets.core.localstorage.db.SeedEvents
+import br.com.cielotickets.core.common.SeedEvents
 import br.com.cielotickets.feature.home.R
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest

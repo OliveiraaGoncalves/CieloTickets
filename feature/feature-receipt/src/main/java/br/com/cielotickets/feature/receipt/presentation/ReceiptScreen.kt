@@ -41,14 +41,14 @@ import br.com.cielotickets.core.designsystem.LabeledValueRow
 import br.com.cielotickets.core.designsystem.SecondaryButton
 import br.com.cielotickets.core.designsystem.SectionCard
 import br.com.cielotickets.core.designsystem.Spacing
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
-import br.com.cielotickets.feature.payment.domain.PurchaseStatus
+import br.com.cielotickets.core.common.PurchaseReceiptModel
+import br.com.cielotickets.core.common.PurchaseStatus
 import br.com.cielotickets.feature.receipt.R
 
 /**
  * Requisito funcional 5: "Exibir comprovante/resumo da compra".
  *
- * Só recebe `onDone` — o [PurchaseReceipt] vem do [ReceiptViewModel],
+ * Só recebe `onDone` — o [PurchaseReceiptModel] vem do [ReceiptViewModel],
  * reconstruído a partir da `idempotencyKey` da rota (sobrevive a
  * `process death`, ver docstring do ViewModel).
  */
@@ -69,7 +69,7 @@ fun ReceiptScreen(onDone: () -> Unit = {}, viewModel: ReceiptViewModel = hiltVie
 }
 
 @Composable
-private fun ReceiptContent(receipt: PurchaseReceipt, onDone: () -> Unit, modifier: Modifier = Modifier) {
+private fun ReceiptContent(receipt: PurchaseReceiptModel, onDone: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxSize()) {
         StatusBanner(receipt.status)
 

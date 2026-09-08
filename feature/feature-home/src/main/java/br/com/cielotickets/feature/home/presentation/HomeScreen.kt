@@ -17,10 +17,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,17 +46,33 @@ import br.com.cielotickets.core.designsystem.FullScreenLoading
 import br.com.cielotickets.core.designsystem.InfoBadge
 import br.com.cielotickets.core.designsystem.Spacing
 import br.com.cielotickets.feature.home.R
-import br.com.cielotickets.feature.home.domain.Event
+import br.com.cielotickets.core.common.EventModel
 
 /** Requisito funcional 1: "Visualizar eventos disponíveis para compra". */
 @Composable
 fun HomeScreen(
-    onEventSelected: (Event) -> Unit,
+    onEventSelected: (EventModel) -> Unit,
+    onHistoryClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(topBar = { AppTopBar(title = stringResource(R.string.home_title)) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = stringResource(R.string.home_title),
+                actions = {
+                    IconButton(onClick = onHistoryClick) {
+                        Icon(
+                            imageVector = Icons.Filled.History,
+                            contentDescription = stringResource(R.string.home_history_cd),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
         when (val s = state) {
             is UiState.Loading -> FullScreenLoading(
                 message = stringResource(R.string.home_loading),
@@ -89,7 +107,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun EventCard(event: Event, onClick: () -> Unit) {
+private fun EventCard(event: EventModel, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

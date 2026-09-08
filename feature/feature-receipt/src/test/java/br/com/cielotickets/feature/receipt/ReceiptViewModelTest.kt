@@ -5,9 +5,9 @@ import app.cash.turbine.test
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.DomainError
 import br.com.cielotickets.core.common.UiState
-import br.com.cielotickets.feature.payment.domain.PurchaseOrder
-import br.com.cielotickets.feature.payment.domain.PurchaseReceipt
-import br.com.cielotickets.feature.payment.domain.PurchaseStatus
+import br.com.cielotickets.core.common.PurchaseOrderModel
+import br.com.cielotickets.core.common.PurchaseReceiptModel
+import br.com.cielotickets.core.common.PurchaseStatus
 import br.com.cielotickets.feature.receipt.domain.GetReceiptUseCase
 import br.com.cielotickets.feature.receipt.presentation.ReceiptViewModel
 import io.mockk.coEvery
@@ -32,9 +32,9 @@ import org.junit.jupiter.api.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReceiptViewModelTest {
 
-    private val receipt = PurchaseReceipt(
+    private val receipt = PurchaseReceiptModel(
         idempotencyKey = "key-1",
-        order = PurchaseOrder("evt-1", "Show X", 2, 30000),
+        order = PurchaseOrderModel("evt-1", "Show X", 2, 30000),
         status = PurchaseStatus.APPROVED,
         cieloTransactionId = "tx-1"
     )

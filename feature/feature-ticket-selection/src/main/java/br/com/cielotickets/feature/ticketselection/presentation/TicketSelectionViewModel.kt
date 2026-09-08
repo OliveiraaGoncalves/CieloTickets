@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.cielotickets.core.common.AppResult
-import br.com.cielotickets.feature.home.domain.Event
-import br.com.cielotickets.feature.home.domain.GetEventByIdUseCase
+import br.com.cielotickets.core.common.EventModel
+import br.com.cielotickets.core.common.GetEventByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class TicketSelectionState(
-    val event: Event? = null,
+    val event: EventModel? = null,
     val loadFailed: Boolean = false,
     val quantity: Int = 1
 ) {
@@ -25,7 +25,7 @@ data class TicketSelectionState(
  * Requisito funcional 2: "Selecionar a quantidade de ingressos".
  *
  * Recebe só o `eventId` via [SavedStateHandle] (rota tipada
- * `TicketSelectionRoute`, em `navigation/`) e recarrega o [Event] sozinho —
+ * `TicketSelectionRoute`, em `navigation/`) e recarrega o [EventModel] sozinho —
  * sobrevive a `process death` porque não depende de nenhum objeto de
  * domínio guardado em `remember` no NavHost. Efeito colateral bom: como o
  * `init` só roda uma vez por instância do ViewModel (não a cada

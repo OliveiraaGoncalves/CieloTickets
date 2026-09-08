@@ -1,5 +1,6 @@
 package br.com.cielotickets.core.designsystem
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,7 +16,11 @@ import androidx.compose.ui.res.stringResource
 /** Top bar padrão de todas as telas — cor de marca consistente, botão de voltar opcional. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppTopBar(title: String, onBack: (() -> Unit)? = null) {
+fun AppTopBar(
+    title: String,
+    onBack: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
     TopAppBar(
         title = { Text(title) },
         navigationIcon = {
@@ -25,6 +30,7 @@ fun AppTopBar(title: String, onBack: (() -> Unit)? = null) {
                 }
             }
         },
+        actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary,

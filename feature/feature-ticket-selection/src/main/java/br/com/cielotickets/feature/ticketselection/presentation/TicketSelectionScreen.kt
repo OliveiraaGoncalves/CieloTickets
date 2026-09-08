@@ -45,7 +45,7 @@ import br.com.cielotickets.feature.ticketselection.R
 /**
  * Requisito funcional 2: "Selecionar a quantidade de ingressos".
  *
- * Só recebe `onConfirm(eventId, quantity)`/`onBack` — o [Event][br.com.cielotickets.feature.home.domain.Event]
+ * Só recebe `onConfirm(eventId, quantity)`/`onBack` — o [EventModel][br.com.cielotickets.core.common.EventModel]
  * em si vem do [TicketSelectionViewModel], carregado a partir do `eventId`
  * da rota (ver docstring do ViewModel pra o porquê).
  */

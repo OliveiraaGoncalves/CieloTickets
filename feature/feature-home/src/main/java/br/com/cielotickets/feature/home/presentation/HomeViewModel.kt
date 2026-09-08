@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import br.com.cielotickets.core.common.AppResult
 import br.com.cielotickets.core.common.UiState
 import br.com.cielotickets.feature.home.R
-import br.com.cielotickets.feature.home.domain.Event
-import br.com.cielotickets.feature.home.domain.GetAvailableEventsUseCase
+import br.com.cielotickets.core.common.EventModel
+import br.com.cielotickets.core.common.GetAvailableEventsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +19,8 @@ class HomeViewModel @Inject constructor(
     private val getAvailableEvents: GetAvailableEventsUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState<List<Event>>>(UiState.Loading)
-    val uiState: StateFlow<UiState<List<Event>>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<UiState<List<EventModel>>>(UiState.Loading)
+    val uiState: StateFlow<UiState<List<EventModel>>> = _uiState.asStateFlow()
 
     init { load() }
 

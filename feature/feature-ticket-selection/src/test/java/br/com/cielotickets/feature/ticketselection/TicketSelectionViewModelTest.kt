@@ -3,8 +3,8 @@ package br.com.cielotickets.feature.ticketselection
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import br.com.cielotickets.core.common.AppResult
-import br.com.cielotickets.feature.home.domain.Event
-import br.com.cielotickets.feature.home.domain.GetEventByIdUseCase
+import br.com.cielotickets.core.common.EventModel
+import br.com.cielotickets.core.common.GetEventByIdUseCase
 import br.com.cielotickets.feature.ticketselection.presentation.TicketSelectionViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test
  * Recalcula o valor total de forma precisa no ViewModel."
  *
  * O ViewModel recebe só o `eventId` via [SavedStateHandle] (rota tipada) e
- * recarrega o [Event] sozinho — por isso todo teste aqui mocka
+ * recarrega o [EventModel] sozinho — por isso todo teste aqui mocka
  * [GetEventByIdUseCase] em vez de chamar um `setEvent()` (que não existe
  * mais: ver docstring do ViewModel pra o porquê da mudança).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TicketSelectionViewModelTest {
 
-    private val event = Event(
+    private val event = EventModel(
         id = "evt-1",
         title = "Show X",
         venue = "Arena Y",
