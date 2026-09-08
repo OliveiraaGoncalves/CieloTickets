@@ -46,10 +46,19 @@ especialmente no sistema de reserva/pagamento de ingresso.
    nos 4 módulos que têm ViewModel/UseCase com lógica real.
 5. **Centralização de build** (`build-logic/convention`): a IA identificou
    o boilerplate repetido de `android {}`/Compose/Hilt/testes em cada
-   `build.gradle.kts` e propôs plugins de convenção — descoberta e corrigida
-   no processo uma limitação real do Gradle 9 (accessor tipado do catálogo
-   quebra quando o módulo também aplica um plugin de um *included build*),
-   documentada em `docs/ARCHITECTURE.md`.
+   `build.gradle.kts` e propôs plugins de convenção. No processo, todo
+   módulo que aplicava um desses plugins perdeu o accessor tipado do
+   catálogo (`libs.foo.bar` virava "Unresolved reference", só
+   `libs.findLibrary("foo-bar").get()` funcionava) — a primeira hipótese
+   foi tratar como limitação do Gradle 9 e conviver com o workaround, mas
+   não bateu com repositórios de referência estruturados do mesmo jeito
+   (Now in Android, outros templates com `build-logic` via included build)
+   que não tinham o problema. Comparação lado a lado achou a causa raiz
+   real: as classes de `build-logic/convention` estavam no pacote padrão
+   (sem `package` declarado), colidindo com o accessor sintético que o
+   próprio Gradle gera pro script. Corrigido movendo tudo pra um pacote
+   nomeado — os acessores tipados voltaram a funcionar em todo
+   `build.gradle.kts` do projeto. Documentado em `docs/ARCHITECTURE.md`.
 6. **Bugs encontrados via teste manual, não só revisão de código**: ao
    simular os cenários de negado/cancelado no emulador, apareceram dois
    bugs reais que a leitura do código sozinha não teria pego — (a) o
@@ -65,6 +74,15 @@ especialmente no sistema de reserva/pagamento de ingresso.
    manual de ProGuard poderia quebrar o contrato JSON só em build de
    release, nunca em debug. As regras ficaram documentadas com o porquê,
    não só copiadas do guia oficial do `kotlinx.serialization`.
+8. **Bug de build release só reproduzido no CI**: `core-network/
+   NetworkModule.kt` usava `HttpLoggingInterceptor` sempre (guardado só em
+   runtime por `if (BuildConfig.DEBUG)`), mas a dependência era
+   `debugImplementation` — `compileDebugKotlin`/`assembleDebug` local
+   nunca pegou isso, só apareceu quando o CI rodou `assembleRelease` de
+   verdade. Corrigido trocando pra `implementation` (a interceptor
+   continua sem logar nada em release, só deixa de faltar a classe no
+   classpath). Reforçou testar a mesma bateria do CI localmente
+   (`assembleRelease` incluso) antes de considerar algo pronto.
 
 ## Restrições aplicadas ao uso da IA
 
