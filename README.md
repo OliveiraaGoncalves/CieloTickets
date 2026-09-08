@@ -141,6 +141,27 @@ Rodar os instrumentados (precisa de emulador/dispositivo conectado):
 
 Lista completa e o que cada teste prova: `docs/ARCHITECTURE.md#testes-críticos-cobertos`.
 
+**Cobertura (Kover)**, agregada dos 11 módulos, código gerado (Hilt/Room/
+`BuildConfig`) e `di/` já excluídos:
+
+```bash
+./gradlew koverHtmlReport   # build/reports/kover/html/index.html
+```
+
+20% de linha no agregado — número baixo de propósito, não por descuido:
+`core-designsystem` (componentes puros de UI) e a camada `presentation/`
+de Compose são cobertos por teste instrumentado/manual, não por linha
+unitária (é a mesma pirâmide descrita acima). Onde a régua importa de
+verdade o número é outro: `feature-payment/domain` 82% (`ProcessPaymentUseCaseImpl`,
+a lógica mais crítica do case), `core-local-storage/db` 63%,
+`core-network/events` 62%. O relatório também **achou um gap real**:
+as três classes `*RepositoryImpl` (mapeamento Entity↔Model —
+`PurchaseRepositoryImpl`, `ReceiptRepositoryImpl`,
+`PurchaseHistoryRepositoryImpl`) estão em 0% — só são exercitadas
+indiretamente via mock da interface nos testes de UseCase, o mapeamento em
+si nunca roda em teste. Fica registrado como próximo passo, não corrigido
+nesta rodada.
+
 ## 4. Engenharia de IA no desenvolvimento
 
 IA (Claude) usada como copiloto em pontos específicos, não como gerador
@@ -182,3 +203,6 @@ Com mais tempo:
    deliberadamente adiado hoje porque esse grupo é acoplado e subir
    qualquer um força um bump de AGP pra série 9.x (testado
    empiricamente); ver comentário no topo de `gradle/libs.versions.toml`.
+6. **Teste direto pras 3 classes `*RepositoryImpl`** (mapeamento
+   Entity↔Model) — achado real do relatório de cobertura (item 3), 0% hoje
+   porque só são exercitadas indiretamente via mock nos testes de UseCase.

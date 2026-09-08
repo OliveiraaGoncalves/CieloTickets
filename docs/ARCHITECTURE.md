@@ -372,6 +372,32 @@ ponta a ponta) pegariam a quebra na hora.
     gateway (o teste que mais importa para este case);
   - pagamento aprovado grava `status = APPROVED` com o `transactionId`.
 
+### Cobertura medida (Kover) {#cobertura}
+
+Agregada na raiz (`build.gradle.kts`) via `kover(project(...))` por
+módulo — cada módulo Android precisa aplicar o plugin também (não só a
+raiz), senão o Kover não sabe qual variante (debug/release) expor pro
+relatório agregado; por isso `configureKotlinAndroid`
+(`build-logic/convention/src/main/kotlin/KotlinAndroid.kt`) aplica
+`org.jetbrains.kotlinx.kover` pra todo módulo automaticamente, mesmo
+ponto onde já derivamos o `namespace`. Excludes configurados: código
+gerado (`*_Factory`, `Hilt_*`, `*_Impl`, `BuildConfig`) e pacotes `di/`
+(`@Binds` não tem corpo pra cobrir; `@Provides` só roda com o grafo do
+Hilt de pé, não em teste unitário puro) — sem isso a métrica fica diluída
+por código que não é nosso.
+
+`./gradlew koverHtmlReport` → `build/reports/kover/html/index.html`.
+Rodado no CI a cada push, publicado como artifact. Número agregado (~20%
+de linha) reflete a pirâmide de teste documentada acima, não descuido:
+`presentation/` (Compose) e `core-designsystem` são cobertos por
+instrumentado, não por linha unitária. Onde a régua importa —
+`feature-payment/domain` (82%), `core-local-storage/db` (63%),
+`core-network/events` (62%) — o número é bem mais alto. Achado real do
+relatório: `PurchaseRepositoryImpl`/`ReceiptRepositoryImpl`/
+`PurchaseHistoryRepositoryImpl` (mapeamento Entity↔Model) em 0% — só
+exercitadas indiretamente via mock da interface nos testes de UseCase,
+registrado como próximo passo em `README.md`.
+
 ## Testes instrumentados (`app/src/androidTest`) {#instrumented-tests}
 
 Rodam de verdade num dispositivo/emulador (`./gradlew :app:connectedDebugAndroidTest`),

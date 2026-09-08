@@ -12,6 +12,7 @@ java {
 dependencies {
     compileOnly(blLibs.android.gradlePlugin)
     compileOnly(blLibs.kotlin.gradlePlugin)
+    compileOnly(blLibs.kotlin.kover.gradlePlugin)
 }
 
 gradlePlugin {

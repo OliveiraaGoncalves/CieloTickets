@@ -25,6 +25,18 @@ jobs:
       - name: Build + lint + testes unitários
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 
+      - name: Cobertura de testes (Kover)
+        run: ./gradlew koverHtmlReport koverXmlReport
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: kover-report-${{ github.sha }}
+          path: |
+            build/reports/kover/html/
+            build/reports/kover/report.xml
+          retention-days: 30
+
       - name: Publicar APK debug
         uses: actions/upload-artifact@v4
         with:

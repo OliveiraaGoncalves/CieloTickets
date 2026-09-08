@@ -11,6 +11,12 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
+    // Kover precisa do plugin em CADA módulo Android (não só na raiz) pra
+    // expor a variante certa (debug/release) pro relatório agregado —
+    // aplicar aqui evita repetir em todo build.gradle.kts. A agregação em
+    // si (`kover(project(...))`) mora só no build.gradle.kts raiz.
+    pluginManager.apply("org.jetbrains.kotlinx.kover")
+
     commonExtension.apply {
         namespace = deriveNamespace()
         compileSdk = 34
