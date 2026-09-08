@@ -82,15 +82,22 @@ jobs:
       # que libs.versions.toml declara) pro GitHub — é o que liga o
       # Dependabot Alerts (aba Security do repo) pra esse projeto. Só no
       # push: é o estado do `main` que deve ficar monitorado continuamente.
+      # continue-on-error: precisa de "Dependency graph" habilitado em
+      # Settings > Security do repo (config de conta, fora do workflow) —
+      # sem isso a submissão falha com "Dependency graph is disabled for
+      # this repository". Não deixa essa dependência externa quebrar o CI.
       - name: Publicar grafo de dependências
         if: github.event_name == 'push'
+        continue-on-error: true
         uses: gradle/actions/dependency-submission@v4
 
       # Compara as dependências que o PR está adicionando/mudando contra
       # vulnerabilidades já conhecidas e falha o check se achar alguma —
-      # pega problema ANTES do merge, não só monitora depois.
+      # pega problema ANTES do merge, não só monitora depois. Mesmo
+      # pré-requisito do passo acima (Dependency graph habilitado).
       - name: Revisar dependências do PR
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
 
   instrumented:
