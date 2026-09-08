@@ -102,6 +102,39 @@
 
     <issue
         id="GradleDependency"
+        message="A newer version of com.google.devtools.ksp than 2.0.20-1.0.25 is available: 2.2.20-2.0.3"
+        errorLine1="ksp = &quot;2.0.20-1.0.25&quot;"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="19"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.devtools.ksp than 2.0.20-1.0.25 is available: 2.2.20-2.0.3"
+        errorLine1="ksp = &quot;2.0.20-1.0.25&quot;"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="19"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.devtools.ksp than 2.0.20-1.0.25 is available: 2.2.20-2.0.3"
+        errorLine1="ksp = &quot;2.0.20-1.0.25&quot;"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="19"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
         message="A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.19.0"
         errorLine1="coreKtx = &quot;1.13.1&quot;"
         errorLine2="          ~~~~~~~~">
@@ -395,17 +428,6 @@
             file="../gradle/libs.versions.toml"
             line="27"
             column="18"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.8.1 is available: 1.11.0"
-        errorLine1="kotlinxSerialization = &quot;1.8.1&quot;"
-        errorLine2="                       ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="28"
-            column="24"/>
     </issue>
 
     <issue
@@ -850,24 +872,13 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:hilt-android-compiler than 2.52 is available: 2.56.2"
-        errorLine1="hilt = &quot;2.52&quot;"
-        errorLine2="       ~~~~~~">
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.8.1 is available: 1.11.0"
+        errorLine1="kotlinxSerialization = &quot;1.8.1&quot;"
+        errorLine2="                       ~~~~~~~">
         <location
             file="../gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:hilt-android-testing than 2.52 is available: 2.56.2"
-        errorLine1="hilt = &quot;2.52&quot;"
-        errorLine2="       ~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
+            line="28"
+            column="24"/>
     </issue>
 
     <issue
@@ -879,6 +890,17 @@
             file="../gradle/libs.versions.toml"
             line="34"
             column="9"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.squareup.retrofit2:retrofit than 2.12.0 is available: 3.0.0"
+        errorLine1="retrofit = &quot;2.12.0&quot;"
+        errorLine2="           ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="42"
+            column="12"/>
     </issue>
 
 </issues>
