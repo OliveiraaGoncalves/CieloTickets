@@ -38,8 +38,13 @@ espresso = "3.6.1"
 androidxTestExtJunit = "1.2.1"
 androidxTestRunner = "1.6.2"
 androidxTestCore = "1.6.1"
+javaxInject = "1"
+retrofit = "2.12.0"
+okhttp = "4.12.0"
+retrofitKotlinxSerializationConverter = "1.0.0"
 
 [libraries]
+javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javaxInject" }
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
@@ -72,6 +77,11 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-kotlinx-serialization-converter = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationConverter" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiter" }
 junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitJupiter" }

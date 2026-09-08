@@ -2,11 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Sem permissão de INTERNET de propósito: o app não faz nenhuma chamada
-      de rede (eventos são locais via Room, pagamento é via Deeplink/Intent
-      para a Cielo Smart, não HTTP). Não pedir uma permissão que não é usada
-      é boa prática de privacidade/revisão de loja.
+      Catálogo de eventos vem do mockapi.io via Retrofit (core-network) —
+      pagamento continua sendo Deeplink/Intent para a Cielo Smart, não HTTP.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".CieloTicketsApp"

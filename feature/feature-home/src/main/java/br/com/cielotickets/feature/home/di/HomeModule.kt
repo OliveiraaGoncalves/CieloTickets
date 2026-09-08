@@ -1,7 +1,7 @@
 package br.com.cielotickets.feature.home.di
 
 import br.com.cielotickets.feature.home.data.EventRepositoryImpl
-import br.com.cielotickets.feature.home.domain.EventRepository
+import br.com.cielotickets.core.common.EventRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
