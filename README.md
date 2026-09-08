@@ -114,13 +114,13 @@ Pirâmide inclinada pra unitário de propósito — o `domain` é puro Kotlin,
 então a maior parte da lógica crítica (regra de idempotência, mapeamento
 de erro, cálculo de total) é testável em JVM sem emulador:
 
-- **29 testes unitários** (JUnit 5 + MockK + Turbine) em 8 arquivos:
+- **41 testes unitários** (JUnit 5 + MockK + Turbine) em 11 arquivos:
   UseCases (`ProcessPaymentUseCaseTest` — o mais importante do case,
   garante que reenvio com a mesma chave não chama a Cielo de novo) e
   ViewModels (auditoria de emissão sequencial de `StateFlow`, via
   Turbine) de todas as 5 features + mapeamento de rede
-  (`EventMapperTest`) + repositório com fallback offline-first
-  (`EventRepositoryImplTest`).
+  (`EventMapperTest`) + os 4 `*RepositoryImpl` (mapeamento Entity↔Model,
+  incluindo fallback offline-first em `EventRepositoryImplTest`).
 - **7 testes instrumentados** (JUnit4 + Compose UI Test, `app/src/
   androidTest`) rodando a jornada completa Home → Seleção → Pagamento →
   Comprovante contra `MainActivity`/`CieloNavHost` reais, com
@@ -148,19 +148,18 @@ Lista completa e o que cada teste prova: `docs/ARCHITECTURE.md#testes-críticos-
 ./gradlew koverHtmlReport   # build/reports/kover/html/index.html
 ```
 
-20% de linha no agregado — número baixo de propósito, não por descuido:
+25% de linha no agregado — número baixo de propósito, não por descuido:
 `core-designsystem` (componentes puros de UI) e a camada `presentation/`
 de Compose são cobertos por teste instrumentado/manual, não por linha
 unitária (é a mesma pirâmide descrita acima). Onde a régua importa de
-verdade o número é outro: `feature-payment/domain` 82% (`ProcessPaymentUseCaseImpl`,
-a lógica mais crítica do case), `core-local-storage/db` 63%,
-`core-network/events` 62%. O relatório também **achou um gap real**:
-as três classes `*RepositoryImpl` (mapeamento Entity↔Model —
-`PurchaseRepositoryImpl`, `ReceiptRepositoryImpl`,
-`PurchaseHistoryRepositoryImpl`) estão em 0% — só são exercitadas
-indiretamente via mock da interface nos testes de UseCase, o mapeamento em
-si nunca roda em teste. Fica registrado como próximo passo, não corrigido
-nesta rodada.
+verdade o número é outro: os 4 pacotes `*/data` (mapeamento Entity↔Model
+de todas as 4 features com persistência) e `feature-payment/domain`
+(`ProcessPaymentUseCaseImpl`, a lógica mais crítica do case) estão em
+**100%**/**82%**. O relatório de cobertura já achou e teve o gap corrigido
+numa rodada anterior: as três classes `*RepositoryImpl` estavam em 0% (só
+eram exercitadas indiretamente via mock da interface nos testes de
+UseCase) — hoje têm teste direto (`PurchaseRepositoryImplTest`,
+`ReceiptRepositoryImplTest`, `PurchaseHistoryRepositoryImplTest`).
 
 ## 4. Engenharia de IA no desenvolvimento
 
@@ -203,6 +202,3 @@ Com mais tempo:
    deliberadamente adiado hoje porque esse grupo é acoplado e subir
    qualquer um força um bump de AGP pra série 9.x (testado
    empiricamente); ver comentário no topo de `gradle/libs.versions.toml`.
-6. **Teste direto pras 3 classes `*RepositoryImpl`** (mapeamento
-   Entity↔Model) — achado real do relatório de cobertura (item 3), 0% hoje
-   porque só são exercitadas indiretamente via mock nos testes de UseCase.

@@ -367,6 +367,10 @@ ponta a ponta) pegariam a quebra na hora.
   verdade.
 - `EventMapperTest` (`core-network`): `EventResponse` → `EventModel`
   preserva todos os campos, `imageUrl` nulo no JSON não quebra o parse.
+- `PurchaseRepositoryImplTest`/`ReceiptRepositoryImplTest`/
+  `PurchaseHistoryRepositoryImplTest`: mapeamento Entity↔Model direto (não
+  só via mock da interface), branch de "não encontrado", erro inesperado
+  do DAO vira `Failure` genérico, `CancellationException` nunca é engolida.
 - `ProcessPaymentUseCaseTest`:
   - reenvio com a mesma `idempotencyKey` **não** dispara nova chamada ao
     gateway (o teste que mais importa para este case);
@@ -387,16 +391,20 @@ Hilt de pé, não em teste unitário puro) — sem isso a métrica fica diluída
 por código que não é nosso.
 
 `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html`.
-Rodado no CI a cada push, publicado como artifact. Número agregado (~20%
+Rodado no CI a cada push, publicado como artifact. Número agregado (~25%
 de linha) reflete a pirâmide de teste documentada acima, não descuido:
 `presentation/` (Compose) e `core-designsystem` são cobertos por
-instrumentado, não por linha unitária. Onde a régua importa —
-`feature-payment/domain` (82%), `core-local-storage/db` (63%),
-`core-network/events` (62%) — o número é bem mais alto. Achado real do
-relatório: `PurchaseRepositoryImpl`/`ReceiptRepositoryImpl`/
-`PurchaseHistoryRepositoryImpl` (mapeamento Entity↔Model) em 0% — só
-exercitadas indiretamente via mock da interface nos testes de UseCase,
-registrado como próximo passo em `README.md`.
+instrumentado, não por linha unitária. Onde a régua importa — os 4
+pacotes `*/data` (mapeamento Entity↔Model de todas as features com
+persistência) e `feature-payment/domain` — o número é **100%**/**82%**.
+
+O relatório já achou e teve corrigido um gap real: `PurchaseRepositoryImpl`/
+`ReceiptRepositoryImpl`/`PurchaseHistoryRepositoryImpl` estavam em 0% (só
+exercitadas indiretamente via mock da interface nos testes de UseCase) —
+`PurchaseRepositoryImplTest`/`ReceiptRepositoryImplTest`/
+`PurchaseHistoryRepositoryImplTest` cobrem o mapeamento Entity↔Model
+direto agora, incluindo os dois branches de erro (`not found`/exception
+inesperada) e que `CancellationException` nunca é engolida.
 
 ## Testes instrumentados (`app/src/androidTest`) {#instrumented-tests}
 
@@ -433,12 +441,31 @@ prova e por quê.
 
 ## CI (`.github/workflows/ci.yml`) {#ci}
 
-Dois jobs, sequenciais (`instrumented` só roda se `verify` passar, pra não
-gastar tempo de emulador num build já quebrado):
+Três jobs — `verify` e `dependency-scan` rodam em paralelo (nada em
+`dependency-scan` depende do build passar); `instrumented` só roda depois
+de `verify` passar, pra não gastar tempo de emulador num build já
+quebrado:
 
-- **`verify`**: `./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease`
-  em `ubuntu-latest` — feedback rápido (sem emulador), roda em todo
-  push/PR pra `main`.
+- **`verify`**: `./gradlew testDebugUnitTest lintDebug assembleDebug
+  assembleRelease` + `koverHtmlReport`/`koverXmlReport` em `ubuntu-latest`
+  — feedback rápido (sem emulador), roda em todo push/PR pra `main`.
+  Publica APK debug e relatório de cobertura como artifact.
+- **`dependency-scan`**: scan de dependência vulnerável, 100% nativo do
+  GitHub (sem token/conta externa, sem depender de disponibilidade do NVD
+  — descartado de propósito o plugin `org.owasp.dependencycheck`, que
+  baixa a base do NVD inteira a cada rodada e é conhecido por CI flaky sem
+  API key própria registrada):
+  - No `push`: [`gradle/actions/dependency-submission`](https://github.com/gradle/actions/tree/main/dependency-submission)
+    publica o grafo de dependências **resolvido de verdade** (não só o que
+    `libs.versions.toml` declara) pro GitHub — é o que liga o Dependabot
+    Alerts (aba Security do repo) pra esse projeto.
+  - No `pull_request`: [`actions/dependency-review-action`](https://github.com/actions/dependency-review-action)
+    compara as dependências que o PR está adicionando/mudando contra
+    vulnerabilidades já conhecidas e falha o check antes do merge, não só
+    monitora depois.
+  - Pré-requisito fora do workflow: "Dependency graph" e "Dependabot
+    alerts" habilitados em Settings → Security do repo (normalmente
+    default-on pra repo público, mas vale conferir uma vez).
 - **`instrumented`**: `./gradlew :app:connectedDebugAndroidTest` via
   [`reactivecircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner),
   que sobe um emulador Android de verdade (API 34) no próprio runner

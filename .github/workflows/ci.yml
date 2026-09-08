@@ -58,6 +58,41 @@ jobs:
             **/build/reports/lint-results-*.html
           retention-days: 7
 
+  dependency-scan:
+    name: Scan de dependências
+    runs-on: ubuntu-latest
+    # contents:write só é usado no push (dependency-submission escreve o
+    # grafo via API do GitHub); no pull_request o token já vem com escopo
+    # reduzido automaticamente, a action de review só lê o diff.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Publica o grafo de dependências REAL (versões resolvidas, não só o
+      # que libs.versions.toml declara) pro GitHub — é o que liga o
+      # Dependabot Alerts (aba Security do repo) pra esse projeto. Só no
+      # push: é o estado do `main` que deve ficar monitorado continuamente.
+      - name: Publicar grafo de dependências
+        if: github.event_name == 'push'
+        uses: gradle/actions/dependency-submission@v4
+
+      # Compara as dependências que o PR está adicionando/mudando contra
+      # vulnerabilidades já conhecidas e falha o check se achar alguma —
+      # pega problema ANTES do merge, não só monitora depois.
+      - name: Revisar dependências do PR
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+
   instrumented:
     name: Testes instrumentados (emulador)
     runs-on: ubuntu-latest
