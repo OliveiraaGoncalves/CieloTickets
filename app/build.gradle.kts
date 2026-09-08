@@ -72,11 +72,20 @@ android {
         // (ex: "momento" acusado como erro de digitação de "memento"). Pra
         // um app sem i18n, esse check só gera falso positivo — desliga.
         disable += "Typos"
-        // Achados aceitos conscientemente ficam no baseline (upgrade de
-        // agp/kotlin/ksp/hilt/composeBom/room é esforço à parte, com bateria
-        // de testes própria — ver comentário no libs.versions.toml e
-        // docs/ARCHITECTURE.md). Qualquer achado NOVO fora do baseline
-        // quebra o build de verdade.
+        // GradleDependency/NewerVersionAvailable batem o Maven Central pra
+        // avisar de versão mais nova — mas agp/kotlin/ksp/hilt/composeBom/
+        // room formam um grupo deliberadamente preso numa versão mais antiga
+        // (upgrade é esforço à parte, com bateria de testes própria — ver
+        // comentário no libs.versions.toml e docs/ARCHITECTURE.md). Manter
+        // esses achados só no baseline não é estável: a checagem de rede é
+        // best-effort (timeout vira "não achei nada"), então cada rodada em
+        // ambiente com conectividade instável resolve um subconjunto
+        // diferente de dependências, gerando achado "novo" fora do baseline
+        // toda hora sem nenhuma mudança de versão real ter acontecido.
+        disable += "GradleDependency"
+        disable += "NewerVersionAvailable"
+        // Achados aceitos conscientemente ficam no baseline. Qualquer achado
+        // NOVO fora do baseline quebra o build de verdade.
         baseline = file("lint-baseline.xml")
         abortOnError = true
         warningsAsErrors = true
