@@ -6,7 +6,6 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.cielotickets.app.di.ControllableFakePaymentGateway
 import br.com.cielotickets.core.common.centsToBrl
@@ -97,7 +96,13 @@ class PurchaseFlowInstrumentedTest {
         // Regressão: antes da correção, voltar aqui reabria "payment" (que
         // reexecutava o efeito de sucesso e empilhava "receipt" de novo) em
         // vez de ir direto pra Home.
-        Espresso.pressBack()
+        // `onBackPressedDispatcher` em vez de `Espresso.pressBack()`: o segundo
+        // sintetiza uma tecla física via window manager e exige foco de janela,
+        // o que flaka em emulador de CI (RootViewWithoutFocusException); o
+        // dispatcher é o mesmo caminho que o botão de voltar do sistema aciona.
+        composeTestRule.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
 
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule.onAllNodesWithText(event.title).fetchSemanticsNodes().isNotEmpty()
